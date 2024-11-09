@@ -79,6 +79,12 @@
     <Compile Include="frmVaoThi.Designer.cs">
       <DependentUpon>frmVaoThi.cs</DependentUpon>
     </Compile>
+    <Compile Include="mequagoi.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="mequagoi.Designer.cs">
+      <DependentUpon>mequagoi.cs</DependentUpon>
+    </Compile>
     <Compile Include="PhienDangNhap.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -99,6 +105,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmVaoThi.resx">
       <DependentUpon>frmVaoThi.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="mequagoi.resx">
+      <DependentUpon>mequagoi.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -1,7 +1,7 @@
 ﻿
 namespace TracNghiem
 {
-    partial class canhaiuemhong
+    partial class mequagoi
     {
         /// <summary>
         /// Required designer variable.
@@ -35,20 +35,20 @@ namespace TracNghiem
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(433, 206);
+            this.label1.Location = new System.Drawing.Point(158, 121);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(34, 17);
+            this.label1.Size = new System.Drawing.Size(78, 17);
             this.label1.TabIndex = 0;
-            this.label1.Text = "love";
+            this.label1.Text = "yêu cả nhà";
             // 
-            // canhaiuemhong
+            // mequagoi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.label1);
-            this.Name = "canhaiuemhong";
-            this.Text = "canhaiuemhong";
+            this.Name = "mequagoi";
+            this.Text = "mequagoi";
             this.ResumeLayout(false);
             this.PerformLayout();
 
