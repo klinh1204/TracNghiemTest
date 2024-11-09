@@ -35,7 +35,7 @@ namespace TracNghiem
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(232, 134);
+            this.label1.Location = new System.Drawing.Point(514, 202);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(111, 17);
             this.label1.TabIndex = 0;
