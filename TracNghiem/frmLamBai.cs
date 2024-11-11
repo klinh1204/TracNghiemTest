@@ -37,7 +37,6 @@ namespace TracNghiem
 
         public void DisplayCauHoi()
         {
-            lblindex.Text = CurrentCauHoiIndex.ToString();
             if (CurrentCauHoiIndex < DSCH.Count)
             {
                 var cauHoi = DSCH[CurrentCauHoiIndex];

@@ -1,64 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 
 public class DatabaseHelper
 {
-    // Chuỗi kết nối (Connection String)
-    private static string connectionString = "Data Source=MI-NOTEBOOK\\SQLEXPRESS;Initial Catalog=TracNghiem;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
-    private static SqlConnection connection;
+    // Chuỗi kết nối từ file cấu hình (thay thế hard-code connection string)
+    private static readonly string connectionString = "Data Source=MI-NOTEBOOK\\SQLEXPRESS;Initial Catalog=TracNghiem;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
 
-    // Phương thức mở kết nối
+    // Phương thức mở kết nối với using để tự động đóng
     public static SqlConnection GetConnection()
     {
-        if (connection == null)
-        {
-            connection = new SqlConnection(connectionString);
-        }
-
-        if (connection.State == ConnectionState.Closed)
-        {
-            connection.Open();
-        }
-
+        SqlConnection connection = new SqlConnection(connectionString);
+        connection.Open();
         return connection;
     }
 
     // Phương thức lấy dữ liệu (SELECT)
     public static DataTable ExecuteQuery(string query)
     {
-        DataTable dt = new DataTable();
-        using (SqlCommand command = new SqlCommand(query, GetConnection()))
+        using (SqlConnection connection = GetConnection())
+        using (SqlCommand command = new SqlCommand(query, connection))
         {
+            DataTable dt = new DataTable();
             SqlDataAdapter adapter = new SqlDataAdapter(command);
             adapter.Fill(dt);
+            return dt;
         }
-        return dt;
     }
 
-    //Dùng cái này để lấy kết quả MaLuotThi từ procedure
-    public static object ExecuteScalar(string query)
+    // Dùng cái này để lấy kết quả MaLuotThi từ procedure
+    public static object ExecuteScalar(string query, Dictionary<string, object> parameters = null)
     {
-        object result;
-        using (SqlConnection connection = new SqlConnection("Data Source=MI-NOTEBOOK\\SQLEXPRESS;Initial Catalog=TracNghiem;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False"))
+        using (SqlConnection connection = GetConnection())
+        using (SqlCommand command = new SqlCommand(query, connection))
         {
-            SqlCommand command = new SqlCommand(query, connection);
-            connection.Open();
-            result = command.ExecuteScalar();
-            connection.Close();
+            if (parameters != null)
+            {
+                foreach (var param in parameters)
+                {
+                    command.Parameters.AddWithValue(param.Key, param.Value);
+                }
+            }
+            return command.ExecuteScalar();
         }
-        return result;
     }
 
     // Phương thức thêm, sửa, xóa dữ liệu (INSERT, UPDATE, DELETE)
-    public static int ExecuteNonQuery(string query)
+    public static int ExecuteNonQuery(string query, Dictionary<string, object> parameters = null)
     {
-        using (SqlCommand command = new SqlCommand(query, GetConnection()))
+        using (SqlConnection connection = GetConnection())
+        using (SqlCommand command = new SqlCommand(query, connection))
         {
+            if (parameters != null)
+            {
+                foreach (var param in parameters)
+                {
+                    command.Parameters.AddWithValue(param.Key, param.Value);
+                }
+            }
             return command.ExecuteNonQuery();
         }
     }
@@ -75,98 +75,86 @@ public class DatabaseHelper
         public string MaDapAn { get; set; }
         public string NoiDungDapAn { get; set; }
         public int DungSai { get; set; }
-        public Boolean isSelected;
+        public bool isSelected { get; set; }
     }
 
+    // Phương thức lấy danh sách câu hỏi và đáp án
     public static List<CauHoi> LayDSCH(string MaLuotThi)
     {
         List<CauHoi> DSCauHoi = new List<CauHoi>();
-        string queryDS = @"SELECT lc.MaCauHoi, ch.NoiDung AS NoiDungCauHoi, 
-                   da.MaDapAn, da.NoiDung AS NoiDungDapAn, da.DungSai
-            FROM tblLuaChon lc
-            JOIN tblCauHoi ch ON lc.MaCauHoi = ch.MaCauHoi
-            JOIN tblDapAn da ON ch.MaCauHoi = da.MaCauHoi
-            WHERE lc.MaLuotThi = @MaLuotThi
-            ORDER BY lc.MaCauHoi, NEWID()";
-        // Mở kết nối và thực thi truy vấn
-        using (SqlConnection connection = new SqlConnection(connectionString))
+        string query = @"SELECT lc.MaCauHoi, ch.NoiDung AS NoiDungCauHoi, 
+                         da.MaDapAn, da.NoiDung AS NoiDungDapAn, da.DungSai
+                         FROM tblLuaChon lc
+                         JOIN tblCauHoi ch ON lc.MaCauHoi = ch.MaCauHoi
+                         JOIN tblDapAn da ON ch.MaCauHoi = da.MaCauHoi
+                         WHERE lc.MaLuotThi = @MaLuotThi
+                         ORDER BY lc.MaCauHoi, NEWID()";
+
+        using (SqlConnection connection = GetConnection())
+        using (SqlCommand sqlCommand = new SqlCommand(query, connection))
         {
-            SqlCommand sqlCommand = new SqlCommand(queryDS, connection);
-            sqlCommand.Parameters.AddWithValue("@MaLuotThi", MaLuotThi); // Truyền tham số vào câu lệnh SQL
-
-            connection.Open();
-            SqlDataReader dataReader = sqlCommand.ExecuteReader();
-
-            string currentQuestionId = ""; // Lưu trữ mã câu hỏi hiện tại
-            CauHoi currentQuestion = null;
-            // Đọc từng dòng dữ liệu trong kết quả trả về
-            while (dataReader.Read())
+            sqlCommand.Parameters.AddWithValue("@MaLuotThi", MaLuotThi);
+            using (SqlDataReader dataReader = sqlCommand.ExecuteReader())
             {
-                string MaCauHoi = dataReader["MaCauHoi"].ToString();
+                string currentQuestionId = null;
+                CauHoi currentQuestion = null;
 
-                // Nếu gặp câu hỏi mới, tạo mới đối tượng Question
-                if (MaCauHoi != currentQuestionId)
+                while (dataReader.Read())
                 {
-                    currentQuestion = new CauHoi
+                    string MaCauHoi = dataReader["MaCauHoi"].ToString();
+                    if (MaCauHoi != currentQuestionId)
                     {
-                        MaCauHoi = MaCauHoi,
-                        NoiDungCauHoi = dataReader["NoiDungCauHoi"].ToString(),
-                        DSDapAn = new List<DapAn>()
-                    };
+                        currentQuestion = new CauHoi
+                        {
+                            MaCauHoi = MaCauHoi,
+                            NoiDungCauHoi = dataReader["NoiDungCauHoi"].ToString(),
+                            DSDapAn = new List<DapAn>()
+                        };
+                        DSCauHoi.Add(currentQuestion);
+                        currentQuestionId = MaCauHoi;
+                    }
 
-                    DSCauHoi.Add(currentQuestion); // Thêm câu hỏi vào danh sách
-                    currentQuestionId = MaCauHoi; // Cập nhật mã câu hỏi hiện tại
+                    currentQuestion.DSDapAn.Add(new DapAn
+                    {
+                        MaDapAn = dataReader["MaDapAn"].ToString(),
+                        NoiDungDapAn = dataReader["NoiDungDapAn"].ToString(),
+                        DungSai = Convert.ToInt32(dataReader["DungSai"])
+                    });
                 }
-
-                // Thêm đáp án cho câu hỏi hiện tại
-                currentQuestion.DSDapAn.Add(new DapAn
-                {
-                    MaDapAn = dataReader["MaDapAn"].ToString(),
-                    NoiDungDapAn = dataReader["NoiDungDapAn"].ToString(),
-                    DungSai = Convert.ToInt32(dataReader["DungSai"])
-                });
             }
-            return DSCauHoi; // Trả về danh sách câu hỏi và đáp án
         }
+        return DSCauHoi;
     }
 
     public static void LuuLuaChon(string MaLuotThi, List<CauHoi> DSCH)
     {
-        //gán biến để duyệt các câu hỏi trong danh sách từ đầu đến cuối, xem có đáp án chưa, và có thì là đáp án nào. thì insert vào dtb
-        int i = 0;
-        for (i=0; i<DSCH.Count; i++)
+        foreach (var cauHoi in DSCH)
         {
-            var CauHoi = DSCH[i];
-            if (CauHoi.DSDapAn.Count>2)
+            foreach (var dapAn in cauHoi.DSDapAn)
             {
-                for (int j = 0; j < 4; j++)
+                if (dapAn.isSelected)
                 {
-                    if (CauHoi.DSDapAn[j].isSelected == true)
+                    string query = "UPDATE tblLuaChon SET MaDapAn=@MaDapAn WHERE MaLuotThi=@MaLuotThi AND MaCauHoi=@MaCauHoi";
+                    var parameters = new Dictionary<string, object>
                     {
-                        string query = "UPDATE tblLuaChon SET MaDapAn='" + CauHoi.DSDapAn[j].MaDapAn + "' WHERE MaLuotThi='" + MaLuotThi + "' AND MaCauHoi='" + CauHoi.MaCauHoi + "'";
-                        ExecuteNonQuery(query);
-                    }
+                        { "@MaDapAn", dapAn.MaDapAn },
+                        { "@MaLuotThi", MaLuotThi },
+                        { "@MaCauHoi", cauHoi.MaCauHoi }
+                    };
+                    ExecuteNonQuery(query, parameters);
                 }
             }
-            else
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    if (CauHoi.DSDapAn[j].isSelected == true)
-                    {
-                        string query = "UPDATE tblLuaChon SET MaDapAn='" + CauHoi.DSDapAn[j].MaDapAn + "' WHERE MaLuotThi='" + MaLuotThi + "' AND MaCauHoi='" + CauHoi.MaCauHoi + "'";
-                        ExecuteNonQuery(query);
-                    }
-                }
-            } 
-                
-        }    
+        }
     }
 
     public static void TinhDiem(string MaLuotThi, DateTime TGKT)
     {
-        string query = "EXEC HoanThanh '" + MaLuotThi + "','" + TGKT +"'";
-        ExecuteNonQuery(query);
+        string query = "EXEC HoanThanh @MaLuotThi, @TGKT";
+        var parameters = new Dictionary<string, object>
+        {
+            { "@MaLuotThi", MaLuotThi },
+            { "@TGKT", TGKT }
+        };
+        ExecuteNonQuery(query, parameters);
     }
 }
-

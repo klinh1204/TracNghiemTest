@@ -37,11 +37,19 @@ namespace TracNghiem
             {
                 Session.ID = ID;
                 Session.ThoiGianDangNhap = DateTime.Now;
+                string PhanLoai = dtnd.Rows[0]["PhanLoai"].ToString();
                 MessageBox.Show("Đăng nhập thành công!");
-                this.Hide();
-                Form FormNext = new frmVaoThi();
-                FormNext.Show();
+                Form FormSV = new frmVaoThi();
+                Form FormGV = new KLTestGit();
+                if (PhanLoai=="SV") FormSV.ShowDialog();
+                else FormGV.ShowDialog();
+                this.Close();
             }
+        }
+
+        private void frmDangNhap_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

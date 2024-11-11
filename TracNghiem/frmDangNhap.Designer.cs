@@ -37,6 +37,7 @@ namespace TracNghiem
             this.btnDangNhap = new Guna.UI2.WinForms.Guna2Button();
             this.guna2HtmlLabel2 = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.guna2HtmlLabel1 = new Guna.UI2.WinForms.Guna2HtmlLabel();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.guna2Panel4.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -149,15 +150,26 @@ namespace TracNghiem
             this.guna2HtmlLabel1.TabIndex = 4;
             this.guna2HtmlLabel1.Text = "Nhập ID";
             // 
+            // comboBox1
+            // 
+            this.comboBox1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(422, 77);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(194, 24);
+            this.comboBox1.TabIndex = 5;
+            // 
             // frmDangNhap
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(969, 720);
+            this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.guna2Panel4);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "frmDangNhap";
             this.Text = "frmDangNhap";
+            this.Load += new System.EventHandler(this.frmDangNhap_Load);
             this.guna2Panel4.ResumeLayout(false);
             this.guna2Panel4.PerformLayout();
             this.ResumeLayout(false);
@@ -173,5 +185,6 @@ namespace TracNghiem
         private Guna.UI2.WinForms.Guna2Button btnDangNhap;
         private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel2;
         private Guna.UI2.WinForms.Guna2HtmlLabel guna2HtmlLabel1;
+        private System.Windows.Forms.ComboBox comboBox1;
     }
 }

@@ -20,11 +20,11 @@ namespace TracNghiem
             return !string.IsNullOrEmpty(ID);
         }
 
-        // Phương thức để đăng xuất hoặc xóa thông tin phiên
+        // Phương thức để đăng xuất hoặc xóa thông tin phiên, gọi ra lúc tắt
         public static void ClearSession()
         {
             ID = null;
-            ThoiGianDangNhap = DateTime.MinValue;
+            ThoiGianDangNhap = default;
         }
     }
 
